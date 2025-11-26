@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum ReportType {
+  LAB_RESULT
+  DIAGNOSIS
+  PRESCRIPTION
+  GENERAL
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String?        // null for OAuth users
+  firstName     String?
+  lastName      String?
+  profilePicture String?       @db.Text
+  authProvider  AuthProvider   @default(EMAIL)
+  googleId      String?        @unique
+  emailVerified Boolean        @default(false)
+  verificationCode String?     // For email verification
+  codeExpiresAt DateTime?      // Code expiration time
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  appointments  Appointment[]
+  reports       PatientReport[]
+  chatSessions  ChatSession[]
+
+  @@map("users")
+}
+
+model Appointment {
+  id          String            @id @default(uuid())
+  userId      String
+  title       String
+  description String?           @db.Text
+  appointmentDate DateTime
+  status      AppointmentStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("appointments")
+}
+
+model PatientReport {
+  id          String     @id @default(uuid())
+  userId      String
+  title       String
+  description String?    @db.Text
+  reportType  ReportType @default(GENERAL)
+  fileUrl     String?    // URL to uploaded report file
+  reportDate  DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("patient_reports")
+}
+
+model Medication {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  dosage      String?
+  sideEffects String?  @db.Text
+  indications String?  @db.Text
+  contraindications String? @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("medications")
+}
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String?  // Optional session title
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id          String   @id @default(uuid())
+  sessionId   String
+  role        String   // 'user' or 'assistant'
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
