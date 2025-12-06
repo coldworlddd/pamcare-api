@@ -10,8 +10,6 @@ export class ChatService {
   constructor(private configService: ConfigService) { }
 
   async create(createChatDto: CreateChatDto) {
-
-
     console.log({ createChatDto });
     const response = await this.generateResponse(createChatDto.message);
     return {
