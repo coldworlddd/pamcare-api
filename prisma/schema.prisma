@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model doctors {
+  id        Int    @id @unique(map: "id_UNIQUE") @default(autoincrement())
+  first_name String @db.VarChar(45)
+  last_name String @db.VarChar(45)
+  email     String @unique(map: "email_UNIQUE") @db.VarChar(45)
+  address   String @db.VarChar(45)
+  nin       String @unique(map: "nin_UNIQUE") @db.VarChar(45)
+}
+
+model users {
+  id            Int      @id @unique(map: "id_UNIQUE") @default(autoincrement())
+  email         String   @unique(map: "email_UNIQUE") @db.VarChar(255)
+  first_name    String   @db.VarChar(100)
+  last_name     String   @db.VarChar(100)
+  profile_image String?  @db.VarChar(500)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+model otp_codes {
+  id         Int      @id @unique(map: "id_UNIQUE") @default(autoincrement())
+  email      String   @db.VarChar(255)
+  code       String   @db.VarChar(255)
+  expires_at DateTime
+  verified   Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@index([email])
+}
+
