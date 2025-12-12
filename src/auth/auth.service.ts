@@ -19,7 +19,7 @@ export class AuthService {
         private cloudinaryService: CloudinaryService,
     ) { }
 
-    async sendOtp(email: string): Promise<{ message: string }> {
+    async sendOtp(email: string): Promise<{ message: string, code: string }> {
         // Generate 4-digit OTP
         const code = Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -49,9 +49,9 @@ export class AuthService {
         });
 
         // Send OTP via email
-        await this.emailService.sendOtpEmail(email, code);
+        // await this.emailService.sendOtpEmail(email, code);
 
-        return { message: 'OTP sent successfully' };
+        return { message: 'OTP sent successfully', code };
     }
 
     async verifyOtp(

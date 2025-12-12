@@ -15,10 +15,10 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('Pamcare API')
+    .setDescription('Health app')
     .setVersion('1.0')
-    .addTag('cats')
+    .addTag('pamcare')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
