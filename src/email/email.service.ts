@@ -4,26 +4,26 @@ import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-    private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter;
 
-    constructor(private configService: ConfigService) {
-        this.transporter = nodemailer.createTransport({
-            host: this.configService.get<string>('SMTP_HOST'),
-            port: this.configService.get<number>('SMTP_PORT'),
-            secure: false, // true for 465, false for other ports
-            auth: {
-                user: this.configService.get<string>('SMTP_USER'),
-                pass: this.configService.get<string>('SMTP_PASS'),
-            },
-        });
-    }
+  constructor(private configService: ConfigService) {
+    this.transporter = nodemailer.createTransport({
+      host: this.configService.get<string>('SMTP_HOST'),
+      port: this.configService.get<number>('SMTP_PORT'),
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: this.configService.get<string>('SMTP_USER'),
+        pass: this.configService.get<string>('SMTP_PASS'),
+      },
+    });
+  }
 
-    async sendOtpEmail(email: string, code: string): Promise<void> {
-        const mailOptions = {
-            from: this.configService.get<string>('SMTP_FROM'),
-            to: email,
-            subject: 'Your OTP Code - Pamcare AI',
-            html: `
+  async sendOtpEmail(email: string, code: string): Promise<void> {
+    const mailOptions = {
+      from: this.configService.get<string>('SMTP_FROM'),
+      to: email,
+      subject: 'Your OTP Code - Pamcare AI',
+      html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -73,7 +73,7 @@ export class EmailService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>Pamcare AI</h1>
+              <img src="https://res.cloudinary.com/dbedokzo0/image/upload/v1765530115/today_logo_tkxxiu.png" /.
             </div>
             <div class="content">
               <h2>Your One-Time Password</h2>
@@ -91,8 +91,8 @@ export class EmailService {
         </body>
         </html>
       `,
-        };
+    };
 
-        await this.transporter.sendMail(mailOptions);
-    }
+    await this.transporter.sendMail(mailOptions);
+  }
 }

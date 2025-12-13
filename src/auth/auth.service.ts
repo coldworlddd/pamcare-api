@@ -49,7 +49,7 @@ export class AuthService {
         });
 
         // Send OTP via email
-        // await this.emailService.sendOtpEmail(email, code);
+        await this.emailService.sendOtpEmail(email, code);
 
         return { message: 'OTP sent successfully', code };
     }
