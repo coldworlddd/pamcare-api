@@ -12,4 +12,8 @@ export class CompleteRegistrationDto {
     @IsString()
     @IsNotEmpty()
     last_name: string;
+
+    @IsString()
+    @IsOptional()
+    profile_image: string;
 }
