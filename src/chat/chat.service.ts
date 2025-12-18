@@ -7,49 +7,45 @@ import OpenAI from "openai";
 
 @Injectable()
 export class ChatService {
-  constructor(private configService: ConfigService) { }
+  private openai: OpenAI;
+
+  constructor(private configService: ConfigService) {
+    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY is not defined');
+    }
+    this.openai = new OpenAI({
+      apiKey: apiKey,
+    });
+  }
 
   async create(createChatDto: CreateChatDto) {
-    console.log({ createChatDto });
-    const response = await this.generateResponse(createChatDto.message);
+    const response = await this.generateResponse(createChatDto.message, createChatDto.context);
     return {
       userMessage: createChatDto.message,
       aiResponse: response,
     };
   }
 
-  async generateResponse(message: string): Promise<string> {
-    const client = new OpenAI();
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
-    if (!apiKey) {
-      throw new Error('OPENAI_API_KEY is not defined');
-    }
+  async generateResponse(message: string, context?: string): Promise<string> {
     try {
-      const response = await client.responses.create({
-        model: "gpt-5",
-        input: message,
+      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [];
+
+      if (context) {
+        messages.push({ role: 'system', content: context });
+      }
+
+      messages.push({ role: 'user', content: message });
+
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: messages,
       });
-      return response.output_text;
+
+      return response.choices[0]?.message?.content || "No response generated.";
     } catch (error) {
-      throw new Error(`OpenAI API Error: ${error}`);
-
+      console.error('OpenAI API Error:', error);
+      throw new Error(`Failed to generate response: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-
-  }
-
-  findAll() {
-    return `This action returns chats`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} chat`;
-  }
-
-  update(id: number, updateChatDto: UpdateChatDto) {
-    return `This action updates a #${id} chat`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} chat`;
   }
 }
