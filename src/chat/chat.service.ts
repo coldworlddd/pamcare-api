@@ -1,51 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreateChatDto } from './dto/create-chat.dto';
-import { UpdateChatDto } from './dto/update-chat.dto';
-import OpenAI from "openai";
-
+import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
 
 @Injectable()
 export class ChatService {
-  private openai: OpenAI;
+  private model: GenerativeModel;
+  private genAI: any;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY is not defined');
+      throw new Error('GEMINI_API_KEY is not defined');
     }
-    this.openai = new OpenAI({
-      apiKey: apiKey,
-    });
+    this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
-  async create(createChatDto: CreateChatDto) {
-    const response = await this.generateResponse(createChatDto.message, createChatDto.context);
+  async create(createChatDto: CreateChatDto, userName: string) {
+    const personalizedModel = this.genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      systemInstruction: `You are a medical assistant for a mobile app called Pamcare AI. You are currently assisting ${userName}. You give clients and users the best medical advice and care. You must never give responses outside the medical field. You must never give prescriptions, only medical advice. You may advise users to book an appointment on Pamcare AI. your responses must be concise and straight to the point`
+    });
+
+    const result = await personalizedModel.generateContent(createChatDto.message);
+    const response = result.response.text();
+
     return {
       userMessage: createChatDto.message,
       aiResponse: response,
     };
   }
 
-  async generateResponse(message: string, context?: string): Promise<string> {
-    try {
-      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [];
-
-      if (context) {
-        messages.push({ role: 'system', content: context });
-      }
-
-      messages.push({ role: 'user', content: message });
-
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: messages,
-      });
-
-      return response.choices[0]?.message?.content || "No response generated.";
-    } catch (error) {
-      console.error('OpenAI API Error:', error);
-      throw new Error(`Failed to generate response: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
 }
